@@ -1,8 +1,11 @@
 import axios from 'axios';
 import { notifyFailure, notifySuccess, notifyInfo } from './helpers.js/notify';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
 const KEY_API = '33320710-0e89af02cb8a4d27c83fdc5a5';
 const BASE_URL = 'https://pixabay.com/api/';
+const quantityItemOnPAge = 40;
 
 const galleryRef = document.querySelector('.gallery');
 const formSearchRef = document.querySelector('.search-form');
@@ -12,8 +15,6 @@ formSearchRef.addEventListener('submit', onFormBtnSubmit);
 btnLoadMore.addEventListener('click', onBtnLoadMOreClick);
 
 axios.defaults.baseURL = BASE_URL;
-
-const quantityItemOnPAge = 40;
 
 const configAxios = {
   params: {
@@ -28,63 +29,80 @@ const configAxios = {
   },
 };
 
+
+const options = {
+  captions: true,
+  captionSelector: 'img',
+  captionsData: 'alt',
+  captionPosition: 'top',
+  captionDelay: 250,
+  doubleTapZoom: 1,
+  spinner:	true,
+}
+
+let lightbox = new SimpleLightbox('.gallery a', options);
+
+
 function onFormBtnSubmit(e) {
   e.preventDefault();
   const valueInput = e.target.elements.searchQuery.value.trim();
 
   configAxios.params.q = valueInput;
+
   responseAPIWithAxios();
 
   formSearchRef.reset();
 }
 
 async function resolveAPI() {
-  const res = await axios.get('', configAxios);
-  return res;
+  return await axios.get('', configAxios);
 }
 
-async function responseAPIWithAxios() {
-  // const res = await axios.get('', configAxios);
+function responseAPIWithAxios() {
   resolveAPI()
     .then(res => {
       const arr = res.data.hits;
 
       if (!arr.length) {
         notifyFailure();
+        addClassIsHidden();
         galleryRef.innerHTML = '';
         return;
       }
 
-      btnLoadMore.classList.remove('is-hidden');
-      notifySuccess();
+      removeClassHidden();
+      notifySuccess(quantityItemOnPAge);
       galleryRef.innerHTML = markupResolve(arr);
     })
-    .catch(console.error);
+    .catch(error => {
+      console.error(error);
+    });
 }
 
-async function moreResponseAPIWithAxios() {
+function moreResponseAPIWithAxios() {
   resolveAPI()
     .then(res => {
-      btnLoadMore.classList.remove('is-hidden');
+      removeClassHidden();
 
       const arr = res.data.hits;
       const sumQuery = configAxios.params.page * configAxios.params.per_page;
-      console.log(sumQuery);
-      console.log(res.data.totalHits);
 
       if (sumQuery >= res.data.totalHits) {
-        btnLoadMore.classList.add('is-hidden');
-        notifyInfo()
+        addClassIsHidden();
+        notifyInfo();
         return;
       }
-
+      notifySuccess(sumQuery);
       galleryRef.insertAdjacentHTML('beforeend', markupResolve(arr));
     })
-    .catch(console.error);
+    .catch(error => {
+      addClassIsHidden();
+      console.error(error);
+    });
 }
 
 function onBtnLoadMOreClick(e) {
-  btnLoadMore.classList.add('is-hidden');
+  addClassIsHidden();
   configAxios.params.page += 1;
   moreResponseAPIWithAxios();
 }
@@ -104,8 +122,9 @@ function createStringForMarkup(obj) {
     downloads,
   } = obj;
   return `<div class="photo-card">
-            <img src="${webformatURL}" alt="${tags}" loading="lazy" width=320
-            />
+            <a href="${largeImageURL}">
+              <img src="${webformatURL}" alt="${tags}" loading="lazy" width=320/>
+            </a>
             <div class="info">
               <p class="info-item">
                 <b>Likes</b>${likes}
@@ -125,3 +144,13 @@ function createStringForMarkup(obj) {
           </div>
         </div>`;
 }
+
+function addClassIsHidden() {
+  btnLoadMore.classList.add('is-hidden');
+}
+
+function removeClassHidden() {
+  btnLoadMore.classList.remove('is-hidden');
+}
+
+

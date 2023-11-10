@@ -34,8 +34,8 @@ function notifyFailure() {
   );
 }
 
-function notifySuccess() {
-  Notify.success('Access ');
+function notifySuccess(totalHitsValue) {
+  Notify.success(`"Hooray! We found ${totalHitsValue} images."`);
 }
 
 function notifyInfo () {
