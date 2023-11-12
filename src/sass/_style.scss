@@ -29,17 +29,18 @@ section {
 .gallery {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  // grid-template-rows: repeat(4, 1fr),;
   grid-auto-rows: minmax(100px, auto);
   grid-column-gap: 10px;
   grid-row-gap: 1em;
 }
 
-// .photo-card{
-//   img{
-//     border-radius: 10px;
-//   }
-// }
+.photo-card{
+  width: 360;
+  img{
+    border-radius: 10px;
+    width: 360;
+  }
+}
 
 .load-more{
   background-color: aqua;

@@ -24,7 +24,7 @@ const configAxios = {
     per_page: quantityItemOnPAge,
     image_type: 'photo',
     orientation: 'horizontal',
-    page: 1,
+    page: null,
     q: '',
   },
 };
@@ -41,12 +41,16 @@ const options = {
 }
 
 let lightbox = new SimpleLightbox('.gallery a', options);
+lightbox.on('show.simplelightbox')
 
 
 function onFormBtnSubmit(e) {
   e.preventDefault();
   const valueInput = e.target.elements.searchQuery.value.trim();
-
+  if (!valueInput) {
+    return
+  }
+  configAxios.params.page = 1;
   configAxios.params.q = valueInput;
 
   responseAPIWithAxios();
@@ -87,13 +91,19 @@ function moreResponseAPIWithAxios() {
       const arr = res.data.hits;
       const sumQuery = configAxios.params.page * configAxios.params.per_page;
 
+      
+      galleryRef.insertAdjacentHTML('beforeend', markupResolve(arr));
+      lightbox.refresh();
+
+
+      console.log(sumQuery);
       if (sumQuery >= res.data.totalHits) {
         addClassIsHidden();
         notifyInfo();
         return;
       }
+
       notifySuccess(sumQuery);
-      galleryRef.insertAdjacentHTML('beforeend', markupResolve(arr));
     })
     .catch(error => {
       addClassIsHidden();
@@ -121,9 +131,10 @@ function createStringForMarkup(obj) {
     comments,
     downloads,
   } = obj;
+
   return `<div class="photo-card">
             <a href="${largeImageURL}">
-              <img src="${webformatURL}" alt="${tags}" loading="lazy" width=320/>
+              <img src="${webformatURL}" alt="${tags}" loading="lazy" min-width=320/>
             </a>
             <div class="info">
               <p class="info-item">
